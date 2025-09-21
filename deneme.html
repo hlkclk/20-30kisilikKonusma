@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sesli Sohbet Platformu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #3494E6, #EC6EAD);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, #3494E6, #EC6EAD);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .user-list {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .user {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .user:last-child {
+            border-bottom: none;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #3494E6;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .broadcaster {
+            background-color: #EC6EAD;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-mute, .btn-broadcast {
+            flex: 1;
+        }
+        
+        .btn-mute {
+            background: linear-gradient(90deg, #FF416C, #FF4B2B);
+        }
+        
+        .btn-broadcast {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sesli Sohbet Platformu</h1>
+            <p>20-30 kişilik özel sesli sohbet odası</p>
+        </div>
+        
+        <div class="content">
+            <!-- Giriş Formu -->
+            <div id="loginForm" class="form-container">
+                <h2>Giriş Yap</h2>
+                <input type="text" id="username" placeholder="Kullanıcı Adı">
+                <input type="password" id="password" placeholder="Şifre">
+                <button id="loginBtn">Giriş Yap</button>
+                <p style="text-align: center; margin-top: 15px;">
+                    Hesabınız yok mu? <a href="#" id="showRegister">Kayıt Ol</a>
+                </p>
+            </div>
+            
+            <!-- Kayıt Formu (Başlangıçta gizli) -->
+            <div id="registerForm" class="form-container" style="display: none;">
+                <h2>Yeni Hesap Oluştur</h2>
+                <input type="text" id="newUsername" placeholder="Kullanıcı Adı">
+                <input type="password" id="newPassword" placeholder="Şifre">
+                <input type="password" id="confirmPassword" placeholder="Şifre Tekrar">
+                <button id="registerBtn">Kayıt Ol</button>
+                <p style="text-align: center; margin-top: 15px;">
+                    Zaten hesabınız var mı? <a href="#" id="showLogin">Giriş Yap</a>
+                </p>
+            </div>
+            
+            <!-- Sohbet Odası (Başlangıçta gizli) -->
+            <div id="chatRoom" style="display: none;">
+                <div class="user-list">
+                    <h2>Online Kullanıcılar</h2>
+                    <div id="users">
+                        <!-- Kullanıcılar burada listelenecek -->
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn-mute" id="muteBtn">Sesi Kapat</button>
+                    <button class="btn-broadcast" id="broadcastBtn">Konuşmak İstiyorum</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        Bildirim mesajı burada gösterilecek
+    </div>
+
+    <script>
+        // DOM elementleri
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const chatRoom = document.getElementById('chatRoom');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const usersContainer = document.getElementById('users');
+        const muteBtn = document.getElementById('muteBtn');
+        const broadcastBtn = document.getElementById('broadcastBtn');
+        const notification = document.getElementById('notification');
+        
+        // Kullanıcı verileri (gerçek uygulamada sunucuda saklanır)
+        const users = [
+            { username: 'ahmet', password: '1234' },
+            { username: 'mehmet', password: '1234' },
+            { username: 'ayse', password: '1234' }
+        ];
+        
+        // Örnek kullanıcı listesi (gerçek uygulamada sunucudan alınır)
+        const onlineUsers = [
+            { id: 1, username: 'ahmet', isBroadcaster: true },
+            { id: 2, username: 'mehmet', isBroadcaster: false },
+            { id: 3, username: 'ayse', isBroadcaster: false },
+            { id: 4, username: 'fatma', isBroadcaster: false },
+            { id: 5, username: 'ali', isBroadcaster: false }
+        ];
+        
+        // Bildirim göster
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? '#FF416C' : '#4CAF50';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Kullanıcıları listele
+        function renderUsers() {
+            usersContainer.innerHTML = '';
+            
+            onlineUsers.forEach(user => {
+                const userEl = document.createElement('div');
+                userEl.className = 'user';
+                
+                const avatar = document.createElement('div');
+                avatar.className = `user-avatar ${user.isBroadcaster ? 'broadcaster' : ''}`;
+                avatar.textContent = user.username.charAt(0).toUpperCase();
+                
+                const username = document.createElement('div');
+                username.className = 'user-name';
+                username.textContent = user.username;
+                
+                if (user.isBroadcaster) {
+                    const badge = document.createElement('span');
+                    badge.textContent = ' (Yayıncı)';
+                    badge.style.color = '#EC6EAD';
+                    username.appendChild(badge);
+                }
+                
+                userEl.appendChild(avatar);
+                userEl.appendChild(username);
+                
+                usersContainer.appendChild(userEl);
+            });
+        }
+        
+        // Olay dinleyicileri
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        });
+        
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+        
+        loginBtn.addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showNotification('Lütfen kullanıcı adı ve şifre giriniz.', true);
+                return;
+            }
+            
+            // Basit doğrulama (gerçek uygulamada sunucuda yapılır)
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                // Giriş başarılı
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'none';
+                chatRoom.style.display = 'block';
+                
+                showNotification('Başarıyla giriş yaptınız!');
+                
+                // Kullanıcı listesini render et
+                renderUsers();
+            } else {
+                showNotification('Kullanıcı adı veya şifre hatalı.', true);
+            }
+        });
+        
+        registerBtn.addEventListener('click', () => {
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!username || !password || !confirmPassword) {
+                showNotification('Lütfen tüm alanları doldurunuz.', true);
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showNotification('Şifreler eşleşmiyor.', true);
+                return;
+            }
+            
+            // Kullanıcı adı kontrolü (gerçek uygulamada sunucuda yapılır)
+            if (users.some(u => u.username === username)) {
+                showNotification('Bu kullanıcı adı zaten alınmış.', true);
+                return;
+            }
+            
+            // Yeni kullanıcı ekle (gerçek uygulamada sunucuya gönderilir)
+            users.push({ username, password });
+            
+            showNotification('Hesabınız başarıyla oluşturuldu. Giriş yapabilirsiniz.');
+            
+            // Giriş formuna geri dön
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+        
+        muteBtn.addEventListener('click', () => {
+            if (muteBtn.textContent === 'Sesi Kapat') {
+                muteBtn.textContent = 'Sesi Aç';
+                showNotification('Sesiniz kapatıldı.');
+            } else {
+                muteBtn.textContent = 'Sesi Kapat';
+                showNotification('Sesiniz açıldı.');
+            }
+        });
+        
+        broadcastBtn.addEventListener('click', () => {
+            showNotification('Yayın yapma isteğiniz iletilmiştir. Sıranızı bekleyin.');
+        });
+        
+        // Sayfa yüklendiğinde
+        document.getElementById('username').focus();
+    </script>
+</body>
+</html>
